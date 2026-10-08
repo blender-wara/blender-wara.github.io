@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Belasteter Spannungsteiler</title>
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--ink:#15171a;--mut:#5b6169;--line:#d5d9df;--blue:#1f5fd1;--red:#c00000;--acc:#1f5fd1}
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:18px/1.4 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+  header{padding:14px 22px 2px} h1{margin:0;font-size:1.7rem}
+  .wrap{display:grid;grid-template-columns:1fr minmax(280px,340px);gap:16px;padding:12px 22px 24px;align-items:start}
+  @media (max-width:860px){.wrap{grid-template-columns:1fr;padding:10px 14px 20px}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .card svg{display:block;width:100%;height:auto}
+  .sel{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+  .sel button{font:inherit;font-size:1.15rem;padding:12px 16px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);cursor:pointer}
+  .sel button:hover{border-color:var(--acc)}
+  .sel button.on{border-color:var(--acc);background:#eaf1ff;font-weight:700}
+  .sel small{display:block;font-size:.8rem;color:var(--mut);font-weight:400}
+  .val{padding:14px 4px;border-bottom:1px solid var(--line)} .val:last-child{border-bottom:0}
+  .val .n{color:var(--mut);font-size:1rem}
+  .val .v{font-size:3rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+  .val.u .v{color:var(--blue)} .val.i .v{color:var(--red)}
+  sub{font-size:.65em}
+</style>
+</head>
+<body>
+<header><h1>Belasteter Spannungsteiler</h1></header>
+<div class="wrap">
+  <div class="card">
+    <div class="sel" id="sel"></div>
+    <svg id="plan" viewBox="-30 42 850 350" role="img" aria-label="Schaltplan"></svg>
+  </div>
+  <div class="card">
+    <div class="val u"><div class="n">Spannung der Batterie U<sub>0</sub></div><div class="v" id="v0"></div></div>
+    <div class="val u"><div class="n" id="nU"></div><div class="v" id="vU"></div></div>
+    <div class="val i"><div class="n">Gesamtstrom I<sub>Ges</sub></div><div class="v" id="vI"></div></div>
+  </div>
+</div>
+<script>
+/* ==========================================================================
+   Bauteilbibliothek Schaltzeichen (Elektrotechnik, Unterricht)
+   Quelle der Symbole: Tabellenbuch Elektrotechnik (Europa-Lehrmittel), S. 86, 88, 481
+   Eine Quelle für: Simulationen (HTML/SVG) und Schaltpläne für Word (SVG -> PNG).
+
+   Koordinaten: SVG-Pixel, y nach unten. Bauteile sind senkrecht gezeichnet.
+   Jede Funktion gibt einen SVG-Textabschnitt zurück (String). Mehrere Teile mit + verketten
+   und mit SZ.svg(breite, hoehe, inhalt) zu einem vollständigen SVG machen.
+
+   Feste Regeln (siehe README):
+   - Bauteile nie um 180° drehen; Betätigung/Wirklinie immer von LINKS, Anschlussnummern rechts.
+   - Geräte unbetätigt zeichnen (closed=false bei Schließer, closed=true bei Öffner).
+   - Farben: top/bot = Farbe der Leitung oben/unten am Kontakt (rot = spannungsführend in Simulationen).
+   ========================================================================== */
+(function (root) {
+  const C = { K: '#111', RED: '#e11d1d', BLUE: '#1f5fd1', PEY: '#f2c200', PEG: '#1a9a3a', GREY: '#444', FILL: '#fff', LIVE: '#ffe3e3' };
+  const FONT = 'system-ui,Arial,sans-serif';
+
+  /* ---------- Grundbausteine ---------- */
+  const L = (x1, y1, x2, y2, c = C.K, w = 2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="square"/>`;
+  const D = (x1, y1, x2, y2, c = C.GREY) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="1.3" stroke-dasharray="5 3"/>`;
+  const T = (x, y, t, a = 'middle', sz = 11, f = C.K, w = 'normal') => `<text x="${x}" y="${y}" text-anchor="${a}" font-size="${sz}" fill="${f}" font-weight="${w}" font-family="${FONT}">${t}</text>`;
+  const dot = (x, y, c = C.K) => `<circle cx="${x}" cy="${y}" r="3.4" fill="${c}"/>`;
+  const box = (x, y, w, h, o = {}) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${o.fill || C.FILL}" stroke="${o.stroke || C.K}" stroke-width="${o.sw || 1.4}"/>`;
+  const PE = (x1, y1, x2, y2) => L(x1, y1, x2, y2, C.PEY, 3) + `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${C.PEG}" stroke-width="3" stroke-dasharray="6 6"/>`;
+  const svg = (w, h, inhalt, o = {}) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${o.width || w}" height="${o.height || h}">${o.bg ? `<rect width="${w}" height="${h}" fill="${o.bg}"/>` : ''}${inhalt}</svg>`;
+
+  /* ---------- Antriebe (TBB S. 88): Symbol links, gestrichelte Wirklinie nach rechts bis xe ---------- */
+  const wirk = (sx, ym, xe, c) => D(sx, ym, xe, ym, c);
+  const antriebHand = (sx, ym, xe, c = C.GREY) => L(sx, ym - 9, sx, ym + 9, c, 1.6) + wirk(sx, ym, xe, c);
+  const antriebDruecken = (sx, ym, xe, c = C.GREY) => L(sx, ym - 6, sx, ym + 6, c, 1.6) + L(sx, ym - 6, sx + 5, ym - 6, c, 1.6) + L(sx, ym + 6, sx + 5, ym + 6, c, 1.6) + wirk(sx, ym, xe, c);
+  const antriebZiehen = (sx, ym, xe, c = C.GREY) => L(sx, ym - 6, sx, ym + 6, c, 1.6) + L(sx - 5, ym - 6, sx, ym - 6, c, 1.6) + L(sx - 5, ym + 6, sx, ym + 6, c, 1.6) + wirk(sx, ym, xe, c);
+  const antriebDrehen = (sx, ym, xe, c = C.K) => L(sx, ym - 12, sx, ym + 12, c, 1.6) + L(sx, ym - 12, sx + 11, ym - 12, c, 1.6) + L(sx, ym + 12, sx - 11, ym + 12, c, 1.6) + wirk(sx, ym, xe, c);
+  const antriebKippen = (sx, ym, xe, c = C.K) => L(sx, ym - 12, sx, ym + 12, c, 1.6) + L(sx - 9, ym - 12, sx + 9, ym - 12, c, 1.6) + wirk(sx, ym, xe, c);
+  /* thermische Betätigung (Bimetall) am Hilfskontakt: Wirklinie startet bei sx+10 */
+  const antriebThermisch = (sx, ym, xe, c = C.K) => `<path d="M${sx},${ym - 12} V${ym - 5} H${sx + 10} V${ym + 5} H${sx} V${ym + 12}" fill="none" stroke="${c}" stroke-width="1.6"/>` + wirk(sx + 10, ym, xe, c);
+  const ANTRIEB = { hand: antriebHand, druecken: antriebDruecken, ziehen: antriebZiehen, drehen: antriebDrehen, kippen: antriebKippen, thermisch: antriebThermisch };
+  const schaltschloss = (cx, cy) => box(cx - 8, cy - 8, 16, 16) + L(cx - 8, cy, cx + 8, cy, C.K, 1.2) + L(cx, cy - 8, cx, cy + 8, C.K, 1.2);
+
+  /* ---------- Kontakt (einzeln) ---------- */
+  /* typ 'NO' = Schließer, 'NC' = Öffner. closed = Kontakt geschlossen? top/bot = Leitungsfarbe.
+     Öffner nach TBB S. 86: obere Leitung knickt nach rechts ab (feststehender Kontakt, waagerechter Strich),
+     das Schaltmesser steigt von unten schräg nach rechts oben und liegt im Ruhezustand am Strich an.
+     Betätigt (offen) schwenkt das Messer weiter nach rechts und liegt nicht mehr am Strich an. */
+  const NCG = (yt, yb) => { const yc = yt + 10, bt = yt + 6, k = 0.42, d = k * (yb - bt); return { yc, bt, d, bw: Math.round(k * (yb - yc) + 9) }; };
+  function kontakt(o) {
+    const { x, yt, yb, typ = 'NO', closed = false } = o, top = o.top || C.K, bot = o.bot || top;
+    if (typ === 'NC') {
+      const g = NCG(yt, yb), len = Math.hypot(g.d, yb - g.bt), a = 45 * Math.PI / 180;
+      let s = L(x, yt, x, g.yc, top) + L(x, g.yc, x + g.bw, g.yc, top);
+      s += closed ? L(x, yb, x + g.d, g.bt, top === bot ? bot : top) : L(x, yb, x + len * Math.sin(a), yb - len * Math.cos(a), bot);
+      return s;
+    }
+    /* Schließer: Messer gleich lang und gleich geneigt wie beim Öffner (Neigung 0,42), aber nach links */
+    const dn = 0.42 * (yb - (yt + 6));
+    return closed ? L(x, yt, x, yb, top) : L(x, yt, x, yt + 4, top) + L(x, yb, x - dn, yt + 6, bot);
+  }
+  /* Schaltglied mit Antrieb von links, BMK und Anschlussnummern (Taster, Schalter, Hilfskontakt, Meldekontakt) */
+  function schaltglied(o) {
+    const { x, yt, yb, typ = 'NO', antrieb = 'druecken', betaetigt = false, bmk, n1, n2 } = o;
+    const closed = o.closed !== undefined ? o.closed : (typ === 'NC' ? !betaetigt : betaetigt);
+    const ym = (yt + yb) / 2, c = betaetigt ? C.RED : (antrieb === 'thermisch' ? C.K : C.GREY);
+    const sx = x - (antrieb === 'drehen' ? 36 : antrieb === 'thermisch' ? 41 : 31);
+    let s = kontakt({ x, yt, yb, typ, closed, top: o.top, bot: o.bot });
+    const xe = typ === 'NC' ? x + Math.round(0.42 * (yb - ym)) - 1 : x - Math.round(0.42 * (yb - ym)) + 1;
+    if (antrieb) s += ANTRIEB[antrieb](sx, ym, xe, c);
+    if (bmk) s += T(sx - (antrieb === 'drehen' ? 16 : 7), ym + 4, bmk, 'end', 12);
+    if (n1) { const g = NCG(yt, yb), o1 = typ === 'NC' ? g.bw + 5 : 8, y1 = typ === 'NC' ? g.yc - 3 : yt + 9, y2 = typ === 'NC' ? yb + 9 : yb - 2; s += T(x + o1, y1, n1, 'start', 9, '#333') + T(x + 8, y2, n2, 'start', 9, '#333'); }
+    return s;
+  }
+
+  /* ---------- Sicherung, Spule, Leuchte, Motor ---------- */
+  function sicherung(o) { const { x, yt, yb } = o, top = o.top || C.K, bot = o.bot || top, ym = (yt + yb) / 2;
+    return L(x, yt, x, ym - 14, top) + L(x, ym + 14, x, yb, bot) + box(x - 6, ym - 14, 12, 28) + L(x, ym - 14, x, ym + 14, C.K, 1.4) + (o.bmk ? T(x - 12, ym + 4, o.bmk, 'end', 12) : ''); }
+  function spule(o) { const { x, yt, w = 52, h = 24, on = false, bmk = '-Q1' } = o;
+    return box(x - w / 2, yt, w, h, { fill: on ? C.LIVE : C.FILL, sw: 1.6 }) + T(x + 5, yt - 4, o.a1 || 'A1', 'start', 9, '#333') + T(x + 5, yt + h + 11, o.a2 || 'A2', 'start', 9, '#333') + (bmk ? T(x - w / 2 - 7, yt + h / 2 + 4, bmk, 'end', 12) : ''); }
+  function meldeleuchte(o) { const { cx, cy, r = 12, on = false, bmk } = o;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${on ? '#fff2a8' : C.FILL}" stroke="${C.K}" stroke-width="1.6"/>` + L(cx - r * .7, cy - r * .7, cx + r * .7, cy + r * .7, C.K, 1.4) + L(cx - r * .7, cy + r * .7, cx + r * .7, cy - r * .7, C.K, 1.4) + (bmk ? T(cx - r - 7, cy + 4, bmk, 'end', 12) : ''); }
+  /* Motor 3~: Anschlüsse U1/V1/W1 liegen auf dem Kreis; xs = x der drei Zuleitungen, yIn = y des Leitungsendes oben */
+  function motor3(o) { const { cx, cy, r = 28, xs, yIn, on = false, bmk = '-M1', farbe = C.K } = o; let s = '';
+    xs.forEach((x, i) => { const y = cy - Math.sqrt(r * r - (x - cx) * (x - cx)); s += L(x, yIn, x, y, farbe) + T(i === 0 ? x - 4 : x + 4, y - 6, ['U1', 'V1', 'W1'][i], i === 0 ? 'end' : 'start', 9, '#333'); });
+    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${on ? C.LIVE : C.FILL}" stroke="${farbe}" stroke-width="2"/>` + T(cx, cy - 1, 'M', 'middle', 16, C.K, 'bold') + T(cx, cy + 14, '3~', 'middle', 11);
+    return s + (bmk ? T(xs[0] - 34, cy + 4, bmk, 'end', 12) : ''); }
+
+  /* ---------- Mehrpolige Geräte (xs = x-Positionen der Pole, Reihenfolge links -> rechts) ---------- */
+  const NR = [['1', '2'], ['3', '4'], ['5', '6']];
+  /* Schütz-Hauptkontakte (nur Kontakte, Wirklinie nach links zu -Q1) */
+  function hauptkontakte3(o) { const { xs, yt, yb, closed = false, bmk = '-Q1' } = o, top = o.top || C.K, bot = o.bot || top; let s = '';
+    xs.forEach((x, i) => { s += kontakt({ x, yt, yb, closed, top, bot }) + T(x + 4, yt - 4, NR[i][0], 'start', 9, '#333') + T(x + 4, yb + 14, NR[i][1], 'start', 9, '#333'); });
+    return s + D(xs[xs.length - 1] - 4, (yt + yb) / 2, xs[0] - 30, (yt + yb) / 2) + T(xs[0] - 34, (yt + yb) / 2 + 4, bmk, 'end', 12); }
+  /* Auslöserkasten (oben Bimetall, unten I>) – Pol-Leitungen enden oben und gehen unten weiter, laufen NICHT durch */
+  function ausloeserKasten(o) { const { x1, x3, yt, h = 40 } = o, xm = (x1 + x3) / 2;
+    return box(x1 - 14, yt, x3 - x1 + 28, h) + L(x1 - 14, yt + h / 2, x3 + 14, yt + h / 2, C.K, 1.2) +
+      `<path d="M${xm - 8},${yt + 14} H${xm - 2} V${yt + 7} H${xm + 8}" fill="none" stroke="${C.K}" stroke-width="1.4"/>` + T(xm, yt + h - 5, 'I &gt;', 'middle', 11); }
+  /* Motorschutzschalter (TBB S. 481): Antrieb -> Schaltschloss -> Wirklinie durch alle Kontakte; Wirklinie nach unten zu BEIDEN Zeilen des Kastens.
+     antrieb: 'drehen' (Drehgriff), 'hand' (allgemein), 'kippen'. leistungsschalter:true setzt × an die Kontakte. uvoll:true = Unterspannungsauslöser U<.
+     Bauhöhe: yt .. yt+88 (Kontakte yt..yt+36, Kasten yt+48..yt+88). Kein Strichpunkt-Rahmen (gehört nicht zum Symbol). */
+  function mss3(o) { const { xs, yt, antrieb = 'drehen', bmk = '-F2', closed = false, uvoll = false, leistungsschalter = false } = o, top = o.top || C.K, bot = o.bot || top;
+    const yb = yt + 36, ym = (yt + yb) / 2, x1 = xs[0], x3 = xs[xs.length - 1], xl = x1 - 52, ky = yt + 48; let s = '';
+    xs.forEach((x, i) => { s += kontakt({ x, yt, yb, closed, top, bot }) + L(x, yb, x, ky, bot) + T(x + 4, yt - 6, NR[i][0], 'start', 9, '#333') + T(x + 4, ky + 54, NR[i][1], 'start', 9, '#333');
+      if (leistungsschalter) s += L(x - 4, yt + 4, x + 4, yt + 12, C.K, 1.4) + L(x + 4, yt + 4, x - 4, yt + 12, C.K, 1.4); });
+    s += ausloeserKasten({ x1, x3, yt: ky });
+    s += ANTRIEB[antrieb](xl - 34, ym, xl - 8) + schaltschloss(xl, ym) + D(xl + 8, ym, x3 - 4, ym) + T(xl - 34 - (antrieb === 'drehen' ? 16 : 7), ym + 4, bmk, 'end', 12);
+    s += D(xl, ym + 8, xl, ky + 34) + D(xl, ky + 14, x1 - 14, ky + 14) + D(xl, ky + 34, x1 - 14, ky + 34);
+    if (uvoll) s += D(xl, ky + 34, xl, ky + 50) + box(xl - 12, ky + 50, 24, 18) + T(xl, ky + 63, 'U&lt;', 'middle', 10);
+    return s; }
+  /* FI-Schutzschalter 4-polig (L1 L2 L3 N): Antrieb durch Kippen, Schaltschloss, Summenstromwandler mit Auslöser I∆. Bauhöhe yt .. yt+36 (+ Wandler darunter bis yt+69) */
+  function fi4(o) { const { xs, yt, bmk = '-F1', closed = false, farben } = o, yb = yt + 36, ym = (yt + yb) / 2, x1 = xs[0], xn = xs[xs.length - 1], xl = x1 - 52; let s = '';
+    xs.forEach((x, i) => { const f = (farben && farben[i]) || {}; s += kontakt({ x, yt, yb, closed, top: f.top || C.K, bot: f.bot || f.top || C.K }); });
+    s += antriebKippen(xl - 34, ym, xl - 8) + schaltschloss(xl, ym) + D(xl + 8, ym, xn - 4, ym) + T(xl - 48, ym + 4, bmk, 'end', 12);
+    const ry = yb + 24;
+    s += D(xl, ym + 8, xl, ry - 9) + `<ellipse cx="${(x1 + xn) / 2}" cy="${ry}" rx="${(xn - x1) / 2 + 14}" ry="9" fill="none" stroke="${C.K}" stroke-width="1.5"/>` + L((x1 + xn) / 2 - (xn - x1) / 2 - 14, ry, xl + 14, ry, C.K, 1.4) + box(xl - 14, ry - 9, 28, 18) + T(xl, ry + 4, 'I∆', 'middle', 10);
+    return s; }
+  /* Leitungsschutzschalter 3-polig (DIN EN 60617): je Pol Schließer + thermischer Auslöser (kleine Stufe) + elektromagnetischer Auslöser (Pfeil nach links);
+     Wirklinie verbindet die Pole unten. STATUS: nach Beschreibung aus dem Skill gebaut, nicht gegen ein TBB-Bild geprüft. */
+  function ls3(o) { const { xs, yt, bmk = '-F1', closed = false } = o, top = o.top || C.K, bot = o.bot || top, yb = yt + 50, x3 = xs[xs.length - 1]; let s = '';
+    xs.forEach((x, i) => { s += kontakt({ x, yt, yb, closed, top, bot }) + T(x + 4, yt - 4, NR[i][0], 'start', 9, '#333') + T(x + 4, yb + 14, NR[i][1], 'start', 9, '#333');
+      const bx = y => x - 0.42 * (yb - y); /* x-Lage des Messers auf Höhe y */
+      s += `<path d="M${bx(yt + 14)},${yt + 14} h-6 v7 h-6" fill="none" stroke="${C.K}" stroke-width="1.4"/>`;
+      s += L(bx(yt + 34), yt + 34, bx(yt + 34) - 10, yt + 34, C.K, 1.4) + `<polygon points="${bx(yt + 34) - 10},${yt + 34} ${bx(yt + 34) - 5},${yt + 31} ${bx(yt + 34) - 5},${yt + 37}" fill="${C.K}"/>`; });
+    s += D(x3 - 4, yb - 6, xs[0] - 26, yb - 6) + T(xs[0] - 30, yb - 2, bmk, 'end', 12);
+    return s; }
+  /* Motorschutzrelais (Bimetallrelais, Drehstromgerät, TBB S. 88/481): ein Kasten über alle drei Pole, Bimetall-Zeichen in der Mitte */
+  function motorschutzrelais3(o) { const { xs, yt, h = 40, bmk = '-F2' } = o, x1 = xs[0], x3 = xs[xs.length - 1], xm = (x1 + x3) / 2;
+    return box(x1 - 14, yt, x3 - x1 + 28, h) + `<path d="M${xm - 5},${yt + h / 2 - 10} V${yt + h / 2 - 5} H${xm + 4} V${yt + h / 2 + 5} H${xm - 5} V${yt + h / 2 + 10}" fill="none" stroke="${C.K}" stroke-width="1.6"/>` + T(x1 - 20, yt + h / 2 + 4, bmk, 'end', 12); }
+
+
+  /* ---------- Gleichstrom-Grundstromkreise (TBB S. 86, ergänzt Okt. 2026) ---------- */
+  /* Widerstand allgemein (TBB S. 86): Rechteck, Leitung läuft von oben nach unten ein/aus. side 'l'/'r' = Seite der Beschriftung. */
+  function widerstand(o) { const { x, yt, yb, h = 34, w = 14, bmk, wert, side = 'l' } = o, top = o.top || C.K, bot = o.bot || top, ym = (yt + yb) / 2, sx = side === 'l' ? -1 : 1, an = side === 'l' ? 'end' : 'start';
+    let s = L(x, yt, x, ym - h / 2, top) + L(x, ym + h / 2, x, yb, bot) + box(x - w / 2, ym - h / 2, w, h, { sw: 1.8 });
+    if (bmk) s += T(x + sx * (w / 2 + 7), ym + (wert ? -2 : 5), bmk, an, o.fs || 14);
+    if (wert) s += T(x + sx * (w / 2 + 7), ym + 15, wert, an, (o.fs || 14) - 2, '#333');
+    return s; }
+  /* Galvanisches Element / Batterie (TBB S. 86): langer Strich = Pluspol (oben), kurzer dicker Strich = Minuspol (unten). */
+  function batterie(o) { const { x, yt, yb, bmk = '-G1', wert } = o, top = o.top || C.K, bot = o.bot || top, ym = (yt + yb) / 2;
+    let s = L(x, yt, x, ym - 6, top) + L(x, ym + 6, x, yb, bot) + L(x - 26, ym - 6, x + 26, ym - 6, C.K, 2) + L(x - 13, ym + 6, x + 13, ym + 6, C.K, 6) + T(x + 32, ym - 8, '+', 'start', 16);
+    if (bmk) s += T(x + 32, ym + 20, bmk, 'start', o.fs || 14);
+    if (wert) s += T(x + 32, ym + 42, wert, 'start', (o.fs || 14) - 1, '#333');
+    return s; }
+  /* lösbarer Anschluss (Klemme, offener Kreis, TBB S. 86) */
+  function klemme(o) { const { x, y, label, dx = 12 } = o;
+    return `<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="${C.K}" stroke-width="2"/>` + (label ? T(x + dx, y + 5, label, 'start', o.fs || 14) : ''); }
+  /* Spannungspfeil (blau) bzw. Strompfeil (rot) mit Pfeilspitze von (x0,y0) nach (x1,y1) */
+  function pfeil(x0, y0, x1, y1, c = C.BLUE, w = 2) { const a = Math.atan2(y1 - y0, x1 - x0), l = 11, b = 0.42, p = (t) => `${x1 - l * Math.cos(a + t)},${y1 - l * Math.sin(a + t)}`;
+    return L(x0, y0, x1 - 5 * Math.cos(a), y1 - 5 * Math.sin(a), c, w) + `<polygon points="${x1},${y1} ${p(b)} ${p(-b)}" fill="${c}"/>`; }
+
+  /* ---------- Planrahmen ---------- */
+  function pfadKopf(o) { const { x0 = 10, n, colW = 210, y = 6, h = 24 } = o; let s = '';
+    for (let i = 0; i < n; i++) s += box(x0 + i * colW, y, colW, h, { fill: '#f3f4f6', stroke: '#666', sw: 1 }) + T(x0 + i * colW + colW / 2, y + 18, i + 1, 'middle', 13, C.K, 'bold');
+    return s; }
+  function kontaktspiegel(o) { const { x, y, rows, titel = 'Kontaktspiegel -Q1' } = o, w = 190, rh = 20, hh = rh * (rows.length + 1);
+    let s = T(x + 2, y - 6, titel, 'start', 10, '#333', 'bold') + box(x, y, w, hh, { sw: 1 }) + L(x, y + rh, x + w, y + rh, C.K, 1) + L(x + 80, y, x + 80, y + hh, C.K, 1) + L(x + 130, y, x + 130, y + hh, C.K, 1);
+    s += T(x + 40, y + 14, 'Kontakt', 'middle', 10) + T(x + 105, y + 14, 'S/Ö', 'middle', 10) + T(x + 160, y + 14, 'Pfad', 'middle', 10);
+    rows.forEach((r, i) => { s += T(x + 40, y + 34 + rh * i, r[0], 'middle', 10) + T(x + 105, y + 34 + rh * i, r[1], 'middle', 10) + T(x + 160, y + 34 + rh * i, r[2], 'middle', 10); });
+    return s; }
+
+  const SZ = { C, L, D, T, dot, box, PE, svg, antriebHand, antriebDruecken, antriebZiehen, antriebDrehen, antriebKippen, antriebThermisch, schaltschloss,
+    kontakt, schaltglied, sicherung, spule, meldeleuchte, widerstand, batterie, klemme, pfeil, motor3, hauptkontakte3, ausloeserKasten, mss3, fi4, ls3, motorschutzrelais3, pfadKopf, kontaktspiegel };
+  if (typeof module !== 'undefined' && module.exports) module.exports = SZ; else root.SZ = SZ;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
+(function(){
+'use strict';
+const C = SZ.C, MODE = 'belastet', U0 = 12;
+const OPTS = [{"label": "Unbelastet", "sub": "ohne Verbraucher", "R1": 100, "R2": 100, "RL": null}, {"label": "④ Messgerät", "sub": "R<sub>L</sub> = 1 kΩ", "R1": 100, "R2": 100, "RL": 1000}, {"label": "⑤ Glühlampe", "sub": "R<sub>L</sub> = 100 Ω", "R1": 100, "R2": 100, "RL": 100}, {"label": "⑥ Motor", "sub": "R<sub>L</sub> = 10 Ω", "R1": 100, "R2": 100, "RL": 10}];
+let cur = 0;
+function num(x){ let s = (Math.round(x * 1000) / 1000).toFixed(3); s = s.replace(/0+$/, '').replace(/\.$/, ''); return s.replace('.', ','); }
+const fU = v => num(v) + ' V';
+const fI = a => Math.abs(a) >= 1 ? num(a) + ' A' : num(a * 1000) + ' mA';
+const fIk = a => num(a * 1000) + ' mA';
+const fR = r => r >= 1000 ? num(r / 1000) + ' kΩ' : num(r) + ' Ω';
+const sub = (b, s) => b + '<tspan dy="4" font-size="72%">' + s + '</tspan><tspan dy="-4"></tspan>';
+function calc(){
+  const o = OPTS[cur];
+  const R1 = o.R1, R2 = o.R2, RL = o.RL;
+  const belastet = RL != null;
+  const R2L = belastet ? R2 * RL / (R2 + RL) : R2;
+  const I = U0 / (R1 + R2L);
+  return {R1, R2, RL, belastet, I, U2: I * R2L};
+}
+function draw(){
+  const m = calc();
+  const xB = 120, xR = 400, yT = 80, yN = 220, yU = 360, xA = 600, xU2 = 500;
+  let s = SZ.L(xB, yT, xR, yT) + SZ.L(xB, yU, xA, yU);
+  s += SZ.batterie({x:xB, yt:yT, yb:yU, bmk:'-G1', wert:fU(U0), fs:20});
+  s += SZ.widerstand({x:xR, yt:yT, yb:yN, bmk:'-R1', wert:fR(m.R1), side:'l', h:56, w:24, fs:20});
+  s += SZ.widerstand({x:xR, yt:yN, yb:yU, bmk:'-R2', wert:fR(m.R2), side:'l', h:56, w:24, fs:20});
+  s += SZ.dot(xR, yN) + SZ.L(xR, yN, xA, yN);
+  if (m.belastet) {
+    s += SZ.dot(xR, yU) + SZ.widerstand({x:xA, yt:yN, yb:yU, bmk:'-RL', wert:fR(m.RL), side:'r', h:56, w:24, fs:20});
+  } else {
+    s += SZ.klemme({x:xA, y:yN, label:'A', fs:20}) + SZ.klemme({x:xA, y:yU, label:'B', fs:20});
+  }
+  s += SZ.pfeil(50, yT + 14, 50, yU - 14, C.BLUE) + SZ.T(38, 220, sub('U','0'), 'end', 25, C.BLUE);
+  s += SZ.pfeil(xU2, yN + 12, xU2, yU - 12, C.BLUE) + SZ.T(xU2 + 12, 296, sub('U', m.belastet ? '2L' : '2'), 'start', 25, C.BLUE);
+  s += SZ.pfeil(190, yT, 270, yT, C.RED) + SZ.T(230, yT - 14, sub('I','Ges'), 'middle', 25, C.RED);
+  document.getElementById('plan').innerHTML = s;
+  document.getElementById('v0').textContent = fU(U0);
+  document.getElementById('nU').innerHTML = m.belastet ? 'Spannung am Verbraucher U<sub>2L</sub>' : 'Spannung am Abgriff U<sub>2</sub>';
+  document.getElementById('vU').textContent = fU(m.U2);
+  document.getElementById('vI').textContent = fIk(m.I);
+}
+function build(){
+  document.getElementById('sel').innerHTML = OPTS.map((o, i) => '<button data-i="' + i + '">' + o.label + '<small>' + (o.sub || '') + '</small></button>').join('');
+  document.getElementById('sel').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return; cur = +b.dataset.i; sync(); draw();
+  });
+}
+function sync(){ document.querySelectorAll('#sel button').forEach((b, i) => b.classList.toggle('on', i === cur)); }
+build(); sync(); draw();
+window.__sim = {calc, fU, fIk, set: i => { cur = i; sync(); draw(); }};
+})();
+</script>
+</body>
+</html>
