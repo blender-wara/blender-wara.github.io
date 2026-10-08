@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Innenwiderstand – Hilfe zu den Übungsaufgaben</title>
+<style>
+:root{--blau:#1f5fd1;--rot:#e11d1d;--gruen:#15803d;--grau:#5b6472;--rand:#d5d9e0;--hell:#f4f6fa;--text:#17202e;--akzent:#1f5fd1}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--text);background:#fff;line-height:1.45}
+.wrap{max-width:960px;margin:0 auto;padding:12px 16px 40px}
+h1{font-size:1.35rem;margin:6px 0 2px}
+.sub{color:var(--grau);margin:0 0 12px;font-size:.95rem}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px;border-bottom:2px solid var(--rand);padding-bottom:8px}
+nav button{flex:1 1 auto;min-height:44px;border:1px solid var(--rand);background:var(--hell);border-radius:8px;font:inherit;font-weight:600;cursor:pointer;padding:6px 12px;color:var(--text)}
+nav button[aria-selected=true]{background:var(--akzent);color:#fff;border-color:var(--akzent)}
+section[hidden]{display:none}
+.card{border:1px solid var(--rand);border-radius:10px;padding:12px 14px;margin:0 0 14px;background:#fff}
+.plan{width:100%;height:auto;display:block}
+.ctrl{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:720px){.ctrl{grid-template-columns:1fr 1fr}}
+.row{display:flex;flex-direction:column;gap:2px}
+.row label,.row .lbl{font-weight:600;font-size:.95rem;display:flex;justify-content:space-between;gap:8px}
+.row output{font-variant-numeric:tabular-nums;color:var(--akzent)}
+input[type=range]{width:100%;height:32px;accent-color:var(--akzent)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button,.btn{min-height:44px;border:1px solid var(--rand);background:var(--hell);border-radius:8px;font:inherit;cursor:pointer;padding:6px 12px;color:var(--text)}
+.seg button[aria-pressed=true]{background:var(--akzent);color:#fff;border-color:var(--akzent)}
+.btn.primary{background:var(--akzent);color:#fff;border-color:var(--akzent);font-weight:600}
+.meter{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
+@media(min-width:720px){.meter{grid-template-columns:repeat(4,1fr)}}
+.meter div{background:var(--hell);border-radius:8px;padding:8px 10px}
+.meter b{display:block;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.meter span{font-size:.85rem;color:var(--grau)}
+.bar{display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid var(--rand);margin:6px 0}
+.bar div{display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;white-space:nowrap;overflow:hidden;min-width:0}
+.b-ui{background:var(--rot)}.b-ukl{background:var(--blau)}
+.note{font-size:.9rem;color:var(--grau)}
+.bsp{background:#fff7e0;border:1px solid #f0d58a;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:.95rem}
+.part{border-top:1px solid var(--rand);padding:12px 0}
+.part:first-of-type{border-top:0}
+.part h3{font-size:1rem;margin:0 0 6px}
+.in{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.in input[type=text]{width:9em;min-height:44px;font:inherit;padding:6px 10px;border:2px solid var(--rand);border-radius:8px;font-variant-numeric:tabular-nums}
+.in select{min-height:44px;font:inherit;padding:6px 10px;border:2px solid var(--rand);border-radius:8px}
+.fb{margin:6px 0;font-weight:600}
+.fb.ok{color:var(--gruen)}.fb.no{color:#b45309}
+.tipp{background:#eef4ff;border-left:4px solid var(--blau);padding:6px 10px;margin:6px 0;border-radius:4px;font-size:.95rem}
+.los{background:#f1f8f1;border-left:4px solid var(--gruen);padding:8px 12px;margin:8px 0;border-radius:4px;font-size:.95rem}
+.los p{margin:2px 0}
+.prog{font-weight:600;margin:0 0 8px}
+.done{display:inline-block;background:var(--gruen);color:#fff;border-radius:999px;padding:0 10px;font-size:.85rem;margin-left:6px}
+footer{margin-top:20px;font-size:.85rem;color:var(--grau)}
+sub{font-size:.75em}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Innenwiderstand einer realen Spannungsquelle</h1>
+<p class="sub">Hilfe zu den Übungsaufgaben: Formeln, Tipps und Lösungen zum Überprüfen deiner Rechnung</p>
+<nav role="tablist" aria-label="Bereiche">
+  <button role="tab" id="t-hilfe" aria-selected="true" data-tab="hilfe">Formeln</button>
+  <button role="tab" id="t-a1" aria-selected="false" data-tab="a1">Aufgabe 1</button>
+  <button role="tab" id="t-a2" aria-selected="false" data-tab="a2">Aufgabe 2</button>
+</nav>
+
+<section id="hilfe" aria-labelledby="t-hilfe">
+  <div class="card">
+    <b>Ersatzschaltbild einer realen Spannungsquelle mit Lastwiderstand</b>
+    <svg id="plan" class="plan" viewBox="0 0 880 420" role="img" aria-label="Ersatzschaltbild der realen Spannungsquelle mit Lastwiderstand"></svg>
+    <p class="note">Die ideale Spannungsquelle (U<sub>0</sub>), der Innenwiderstand R<sub>i</sub> und der Lastwiderstand R<sub>L</sub> liegen in Reihe. Durch alle fließt derselbe Strom I<sub>L</sub>.</p>
+  </div>
+  <div class="card">
+    <b>Wichtige Formeln</b>
+    <p>Spannungen in der Reihenschaltung: U<sub>0</sub> = U<sub>i</sub> + U<sub>KL</sub></p>
+    <p>Spannungsfall am Innenwiderstand: U<sub>i</sub> = I · R<sub>i</sub> = U<sub>0</sub> − U<sub>KL</sub></p>
+    <p>Innenwiderstand: R<sub>i</sub> = U<sub>i</sub> / I = (U<sub>0</sub> − U<sub>KL</sub>) / I</p>
+    <p>Klemmenspannung bei Belastung: U<sub>KL</sub> = U<sub>0</sub> − I · R<sub>i</sub></p>
+    <p>Gesamtwiderstand: R<sub>ges</sub> = R<sub>i</sub> + R<sub>L</sub>; Strom: I = U<sub>0</sub> / R<sub>ges</sub></p>
+    <p>Kurzschlussstrom (R<sub>L</sub> = 0 Ω): I<sub>K</sub> = U<sub>0</sub> / R<sub>i</sub></p>
+    <p class="note">Im Leerlauf (I = 0 A) fällt am Innenwiderstand nichts ab: U<sub>KL</sub> = U<sub>0</sub>. Achte auf die Einheiten: 1 mΩ = 0,001 Ω.</p>
+  </div>
+  <div class="card">
+    <b>So gehst du vor</b>
+    <ol><li>Zeichne das Ersatzschaltbild und trage die gegebenen Werte ein.</li><li>Überlege, welche Größe fehlt: U<sub>i</sub>, I, R<sub>ges</sub> oder R<sub>i</sub>.</li><li>Rechne die Einheiten um (mΩ in Ω).</li><li>Rechne Schritt für Schritt und runde zuletzt auf drei Nachkommastellen.</li><li>Öffne bei Bedarf unter der Aufgabe einen Tipp. Prüfe dein Ergebnis oder sieh dir die Lösung an.</li></ol>
+  </div>
+</section>
+
+<section id="a1" hidden aria-labelledby="t-a1"></section>
+<section id="a2" hidden aria-labelledby="t-a2"></section>
+
+<footer>Quellen: Fachkundebuch Europa Elektro, S. 60 f. (Spannungsquelle, Innenwiderstand, Ersatzschaltbild); Tabellenbuch Elektrotechnik (Europa), S. 46 (Ersatzspannungsquelle). Runde auf drei Nachkommastellen.</footer>
+</div>
+
+<script>
+/* ==========================================================================
+   Bauteilbibliothek Schaltzeichen (Elektrotechnik, Unterricht)
+   Quelle der Symbole: Tabellenbuch Elektrotechnik (Europa-Lehrmittel), S. 86, 88, 481
+   Eine Quelle für: Simulationen (HTML/SVG) und Schaltpläne für Word (SVG -> PNG).
+
+   Koordinaten: SVG-Pixel, y nach unten. Bauteile sind senkrecht gezeichnet.
+   Jede Funktion gibt einen SVG-Textabschnitt zurück (String). Mehrere Teile mit + verketten
+   und mit SZ.svg(breite, hoehe, inhalt) zu einem vollständigen SVG machen.
+
+   Feste Regeln (siehe README):
+   - Bauteile nie um 180° drehen; Betätigung/Wirklinie immer von LINKS, Anschlussnummern rechts.
+   - Geräte unbetätigt zeichnen (closed=false bei Schließer, closed=true bei Öffner).
+   - Farben: top/bot = Farbe der Leitung oben/unten am Kontakt (rot = spannungsführend in Simulationen).
+   ========================================================================== */
+(function (root) {
+  const C = { K: '#111', RED: '#e11d1d', BLUE: '#1f5fd1', PEY: '#f2c200', PEG: '#1a9a3a', GREY: '#444', FILL: '#fff', LIVE: '#ffe3e3' };
+  const FONT = 'system-ui,Arial,sans-serif';
+
+  /* ---------- Grundbausteine ---------- */
+  const L = (x1, y1, x2, y2, c = C.K, w = 2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="square"/>`;
+  const D = (x1, y1, x2, y2, c = C.GREY) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="1.3" stroke-dasharray="5 3"/>`;
+  const T = (x, y, t, a = 'middle', sz = 11, f = C.K, w = 'normal') => `<text x="${x}" y="${y}" text-anchor="${a}" font-size="${sz}" fill="${f}" font-weight="${w}" font-family="${FONT}">${t}</text>`;
+  const dot = (x, y, c = C.K) => `<circle cx="${x}" cy="${y}" r="3.4" fill="${c}"/>`;
+  const box = (x, y, w, h, o = {}) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${o.fill || C.FILL}" stroke="${o.stroke || C.K}" stroke-width="${o.sw || 1.4}"/>`;
+  const PE = (x1, y1, x2, y2) => L(x1, y1, x2, y2, C.PEY, 3) + `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${C.PEG}" stroke-width="3" stroke-dasharray="6 6"/>`;
+  const svg = (w, h, inhalt, o = {}) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${o.width || w}" height="${o.height || h}">${o.bg ? `<rect width="${w}" height="${h}" fill="${o.bg}"/>` : ''}${inhalt}</svg>`;
+
+  /* ---------- Antriebe (TBB S. 88): Symbol links, gestrichelte Wirklinie nach rechts bis xe ---------- */
+  const wirk = (sx, ym, xe, c) => D(sx, ym, xe, ym, c);
+  const antriebHand = (sx, ym, xe, c = C.GREY) => L(sx, ym - 9, sx, ym + 9, c, 1.6) + wirk(sx, ym, xe, c);
+  const antriebDruecken = (sx, ym, xe, c = C.GREY) => L(sx, ym - 6, sx, ym + 6, c, 1.6) + L(sx, ym - 6, sx + 5, ym - 6, c, 1.6) + L(sx, ym + 6, sx + 5, ym + 6, c, 1.6) + wirk(sx, ym, xe, c);
+  const antriebZiehen = (sx, ym, xe, c = C.GREY) => L(sx, ym - 6, sx, ym + 6, c, 1.6) + L(sx - 5, ym - 6, sx, ym - 6, c, 1.6) + L(sx - 5, ym + 6, sx, ym + 6, c, 1.6) + wirk(sx, ym, xe, c);
+  const antriebDrehen = (sx, ym, xe, c = C.K) => L(sx, ym - 12, sx, ym + 12, c, 1.6) + L(sx, ym - 12, sx + 11, ym - 12, c, 1.6) + L(sx, ym + 12, sx - 11, ym + 12, c, 1.6) + wirk(sx, ym, xe, c);
+  const antriebKippen = (sx, ym, xe, c = C.K) => L(sx, ym - 12, sx, ym + 12, c, 1.6) + L(sx - 9, ym - 12, sx + 9, ym - 12, c, 1.6) + wirk(sx, ym, xe, c);
+  /* thermische Betätigung (Bimetall) am Hilfskontakt: Wirklinie startet bei sx+10 */
+  const antriebThermisch = (sx, ym, xe, c = C.K) => `<path d="M${sx},${ym - 12} V${ym - 5} H${sx + 10} V${ym + 5} H${sx} V${ym + 12}" fill="none" stroke="${c}" stroke-width="1.6"/>` + wirk(sx + 10, ym, xe, c);
+  const ANTRIEB = { hand: antriebHand, druecken: antriebDruecken, ziehen: antriebZiehen, drehen: antriebDrehen, kippen: antriebKippen, thermisch: antriebThermisch };
+  const schaltschloss = (cx, cy) => box(cx - 8, cy - 8, 16, 16) + L(cx - 8, cy, cx + 8, cy, C.K, 1.2) + L(cx, cy - 8, cx, cy + 8, C.K, 1.2);
+
+  /* ---------- Kontakt (einzeln) ---------- */
+  /* typ 'NO' = Schließer, 'NC' = Öffner. closed = Kontakt geschlossen? top/bot = Leitungsfarbe.
+     Öffner nach TBB S. 86: obere Leitung knickt nach rechts ab (feststehender Kontakt, waagerechter Strich),
+     das Schaltmesser steigt von unten schräg nach rechts oben und liegt im Ruhezustand am Strich an.
+     Betätigt (offen) schwenkt das Messer weiter nach rechts und liegt nicht mehr am Strich an. */
+  const NCG = (yt, yb) => { const yc = yt + 10, bt = yt + 6, k = 0.42, d = k * (yb - bt); return { yc, bt, d, bw: Math.round(k * (yb - yc) + 9) }; };
+  function kontakt(o) {
+    const { x, yt, yb, typ = 'NO', closed = false } = o, top = o.top || C.K, bot = o.bot || top;
+    if (typ === 'NC') {
+      const g = NCG(yt, yb), len = Math.hypot(g.d, yb - g.bt), a = 45 * Math.PI / 180;
+      let s = L(x, yt, x, g.yc, top) + L(x, g.yc, x + g.bw, g.yc, top);
+      s += closed ? L(x, yb, x + g.d, g.bt, top === bot ? bot : top) : L(x, yb, x + len * Math.sin(a), yb - len * Math.cos(a), bot);
+      return s;
+    }
+    /* Schließer: Messer gleich lang und gleich geneigt wie beim Öffner (Neigung 0,42), aber nach links */
+    const dn = 0.42 * (yb - (yt + 6));
+    return closed ? L(x, yt, x, yb, top) : L(x, yt, x, yt + 4, top) + L(x, yb, x - dn, yt + 6, bot);
+  }
+  /* Schaltglied mit Antrieb von links, BMK und Anschlussnummern (Taster, Schalter, Hilfskontakt, Meldekontakt) */
+  function schaltglied(o) {
+    const { x, yt, yb, typ = 'NO', antrieb = 'druecken', betaetigt = false, bmk, n1, n2 } = o;
+    const closed = o.closed !== undefined ? o.closed : (typ === 'NC' ? !betaetigt : betaetigt);
+    const ym = (yt + yb) / 2, c = betaetigt ? C.RED : (antrieb === 'thermisch' ? C.K : C.GREY);
+    const sx = x - (antrieb === 'drehen' ? 36 : antrieb === 'thermisch' ? 41 : 31);
+    let s = kontakt({ x, yt, yb, typ, closed, top: o.top, bot: o.bot });
+    const xe = typ === 'NC' ? x + Math.round(0.42 * (yb - ym)) - 1 : x - Math.round(0.42 * (yb - ym)) + 1;
+    if (antrieb) s += ANTRIEB[antrieb](sx, ym, xe, c);
+    if (bmk) s += T(sx - (antrieb === 'drehen' ? 16 : 7), ym + 4, bmk, 'end', 12);
+    if (n1) { const g = NCG(yt, yb), o1 = typ === 'NC' ? g.bw + 5 : 8, y1 = typ === 'NC' ? g.yc - 3 : yt + 9, y2 = typ === 'NC' ? yb + 9 : yb - 2; s += T(x + o1, y1, n1, 'start', 9, '#333') + T(x + 8, y2, n2, 'start', 9, '#333'); }
+    return s;
+  }
+
+  /* ---------- Sicherung, Spule, Leuchte, Motor ---------- */
+  function sicherung(o) { const { x, yt, yb } = o, top = o.top || C.K, bot = o.bot || top, ym = (yt + yb) / 2;
+    return L(x, yt, x, ym - 14, top) + L(x, ym + 14, x, yb, bot) + box(x - 6, ym - 14, 12, 28) + L(x, ym - 14, x, ym + 14, C.K, 1.4) + (o.bmk ? T(x - 12, ym + 4, o.bmk, 'end', 12) : ''); }
+  function spule(o) { const { x, yt, w = 52, h = 24, on = false, bmk = '-Q1' } = o;
+    return box(x - w / 2, yt, w, h, { fill: on ? C.LIVE : C.FILL, sw: 1.6 }) + T(x + 5, yt - 4, o.a1 || 'A1', 'start', 9, '#333') + T(x + 5, yt + h + 11, o.a2 || 'A2', 'start', 9, '#333') + (bmk ? T(x - w / 2 - 7, yt + h / 2 + 4, bmk, 'end', 12) : ''); }
+  function meldeleuchte(o) { const { cx, cy, r = 12, on = false, bmk } = o;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${on ? '#fff2a8' : C.FILL}" stroke="${C.K}" stroke-width="1.6"/>` + L(cx - r * .7, cy - r * .7, cx + r * .7, cy + r * .7, C.K, 1.4) + L(cx - r * .7, cy + r * .7, cx + r * .7, cy - r * .7, C.K, 1.4) + (bmk ? T(cx - r - 7, cy + 4, bmk, 'end', 12) : ''); }
+  /* Motor 3~: Anschlüsse U1/V1/W1 liegen auf dem Kreis; xs = x der drei Zuleitungen, yIn = y des Leitungsendes oben */
+  function motor3(o) { const { cx, cy, r = 28, xs, yIn, on = false, bmk = '-M1', farbe = C.K } = o; let s = '';
+    xs.forEach((x, i) => { const y = cy - Math.sqrt(r * r - (x - cx) * (x - cx)); s += L(x, yIn, x, y, farbe) + T(i === 0 ? x - 4 : x + 4, y - 6, ['U1', 'V1', 'W1'][i], i === 0 ? 'end' : 'start', 9, '#333'); });
+    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${on ? C.LIVE : C.FILL}" stroke="${farbe}" stroke-width="2"/>` + T(cx, cy - 1, 'M', 'middle', 16, C.K, 'bold') + T(cx, cy + 14, '3~', 'middle', 11);
+    return s + (bmk ? T(xs[0] - 34, cy + 4, bmk, 'end', 12) : ''); }
+
+  /* ---------- Mehrpolige Geräte (xs = x-Positionen der Pole, Reihenfolge links -> rechts) ---------- */
+  const NR = [['1', '2'], ['3', '4'], ['5', '6']];
+  /* Schütz-Hauptkontakte (nur Kontakte, Wirklinie nach links zu -Q1) */
+  function hauptkontakte3(o) { const { xs, yt, yb, closed = false, bmk = '-Q1' } = o, top = o.top || C.K, bot = o.bot || top; let s = '';
+    xs.forEach((x, i) => { s += kontakt({ x, yt, yb, closed, top, bot }) + T(x + 4, yt - 4, NR[i][0], 'start', 9, '#333') + T(x + 4, yb + 14, NR[i][1], 'start', 9, '#333'); });
+    return s + D(xs[xs.length - 1] - 4, (yt + yb) / 2, xs[0] - 30, (yt + yb) / 2) + T(xs[0] - 34, (yt + yb) / 2 + 4, bmk, 'end', 12); }
+  /* Auslöserkasten (oben Bimetall, unten I>) – Pol-Leitungen enden oben und gehen unten weiter, laufen NICHT durch */
+  function ausloeserKasten(o) { const { x1, x3, yt, h = 40 } = o, xm = (x1 + x3) / 2;
+    return box(x1 - 14, yt, x3 - x1 + 28, h) + L(x1 - 14, yt + h / 2, x3 + 14, yt + h / 2, C.K, 1.2) +
+      `<path d="M${xm - 8},${yt + 14} H${xm - 2} V${yt + 7} H${xm + 8}" fill="none" stroke="${C.K}" stroke-width="1.4"/>` + T(xm, yt + h - 5, 'I &gt;', 'middle', 11); }
+  /* Motorschutzschalter (TBB S. 481): Antrieb -> Schaltschloss -> Wirklinie durch alle Kontakte; Wirklinie nach unten zu BEIDEN Zeilen des Kastens.
+     antrieb: 'drehen' (Drehgriff), 'hand' (allgemein), 'kippen'. leistungsschalter:true setzt × an die Kontakte. uvoll:true = Unterspannungsauslöser U<.
+     Bauhöhe: yt .. yt+88 (Kontakte yt..yt+36, Kasten yt+48..yt+88). Kein Strichpunkt-Rahmen (gehört nicht zum Symbol). */
+  function mss3(o) { const { xs, yt, antrieb = 'drehen', bmk = '-F2', closed = false, uvoll = false, leistungsschalter = false } = o, top = o.top || C.K, bot = o.bot || top;
+    const yb = yt + 36, ym = (yt + yb) / 2, x1 = xs[0], x3 = xs[xs.length - 1], xl = x1 - 52, ky = yt + 48; let s = '';
+    xs.forEach((x, i) => { s += kontakt({ x, yt, yb, closed, top, bot }) + L(x, yb, x, ky, bot) + T(x + 4, yt - 6, NR[i][0], 'start', 9, '#333') + T(x + 4, ky + 54, NR[i][1], 'start', 9, '#333');
+      if (leistungsschalter) s += L(x - 4, yt + 4, x + 4, yt + 12, C.K, 1.4) + L(x + 4, yt + 4, x - 4, yt + 12, C.K, 1.4); });
+    s += ausloeserKasten({ x1, x3, yt: ky });
+    s += ANTRIEB[antrieb](xl - 34, ym, xl - 8) + schaltschloss(xl, ym) + D(xl + 8, ym, x3 - 4, ym) + T(xl - 34 - (antrieb === 'drehen' ? 16 : 7), ym + 4, bmk, 'end', 12);
+    s += D(xl, ym + 8, xl, ky + 34) + D(xl, ky + 14, x1 - 14, ky + 14) + D(xl, ky + 34, x1 - 14, ky + 34);
+    if (uvoll) s += D(xl, ky + 34, xl, ky + 50) + box(xl - 12, ky + 50, 24, 18) + T(xl, ky + 63, 'U&lt;', 'middle', 10);
+    return s; }
+  /* FI-Schutzschalter 4-polig (L1 L2 L3 N): Antrieb durch Kippen, Schaltschloss, Summenstromwandler mit Auslöser I∆. Bauhöhe yt .. yt+36 (+ Wandler darunter bis yt+69) */
+  function fi4(o) { const { xs, yt, bmk = '-F1', closed = false, farben } = o, yb = yt + 36, ym = (yt + yb) / 2, x1 = xs[0], xn = xs[xs.length - 1], xl = x1 - 52; let s = '';
+    xs.forEach((x, i) => { const f = (farben && farben[i]) || {}; s += kontakt({ x, yt, yb, closed, top: f.top || C.K, bot: f.bot || f.top || C.K }); });
+    s += antriebKippen(xl - 34, ym, xl - 8) + schaltschloss(xl, ym) + D(xl + 8, ym, xn - 4, ym) + T(xl - 48, ym + 4, bmk, 'end', 12);
+    const ry = yb + 24;
+    s += D(xl, ym + 8, xl, ry - 9) + `<ellipse cx="${(x1 + xn) / 2}" cy="${ry}" rx="${(xn - x1) / 2 + 14}" ry="9" fill="none" stroke="${C.K}" stroke-width="1.5"/>` + L((x1 + xn) / 2 - (xn - x1) / 2 - 14, ry, xl + 14, ry, C.K, 1.4) + box(xl - 14, ry - 9, 28, 18) + T(xl, ry + 4, 'I∆', 'middle', 10);
+    return s; }
+  /* Leitungsschutzschalter 3-polig (DIN EN 60617): je Pol Schließer + thermischer Auslöser (kleine Stufe) + elektromagnetischer Auslöser (Pfeil nach links);
+     Wirklinie verbindet die Pole unten. STATUS: nach Beschreibung aus dem Skill gebaut, nicht gegen ein TBB-Bild geprüft. */
+  function ls3(o) { const { xs, yt, bmk = '-F1', closed = false } = o, top = o.top || C.K, bot = o.bot || top, yb = yt + 50, x3 = xs[xs.length - 1]; let s = '';
+    xs.forEach((x, i) => { s += kontakt({ x, yt, yb, closed, top, bot }) + T(x + 4, yt - 4, NR[i][0], 'start', 9, '#333') + T(x + 4, yb + 14, NR[i][1], 'start', 9, '#333');
+      const bx = y => x - 0.42 * (yb - y); /* x-Lage des Messers auf Höhe y */
+      s += `<path d="M${bx(yt + 14)},${yt + 14} h-6 v7 h-6" fill="none" stroke="${C.K}" stroke-width="1.4"/>`;
+      s += L(bx(yt + 34), yt + 34, bx(yt + 34) - 10, yt + 34, C.K, 1.4) + `<polygon points="${bx(yt + 34) - 10},${yt + 34} ${bx(yt + 34) - 5},${yt + 31} ${bx(yt + 34) - 5},${yt + 37}" fill="${C.K}"/>`; });
+    s += D(x3 - 4, yb - 6, xs[0] - 26, yb - 6) + T(xs[0] - 30, yb - 2, bmk, 'end', 12);
+    return s; }
+  /* Motorschutzrelais (Bimetallrelais, Drehstromgerät, TBB S. 88/481): ein Kasten über alle drei Pole, Bimetall-Zeichen in der Mitte */
+  function motorschutzrelais3(o) { const { xs, yt, h = 40, bmk = '-F2' } = o, x1 = xs[0], x3 = xs[xs.length - 1], xm = (x1 + x3) / 2;
+    return box(x1 - 14, yt, x3 - x1 + 28, h) + `<path d="M${xm - 5},${yt + h / 2 - 10} V${yt + h / 2 - 5} H${xm + 4} V${yt + h / 2 + 5} H${xm - 5} V${yt + h / 2 + 10}" fill="none" stroke="${C.K}" stroke-width="1.6"/>` + T(x1 - 20, yt + h / 2 + 4, bmk, 'end', 12); }
+
+
+  /* ---------- Gleichstrom-Grundstromkreise (TBB S. 86, ergänzt Okt. 2026) ---------- */
+  /* Widerstand allgemein (TBB S. 86): Rechteck, Leitung läuft von oben nach unten ein/aus. side 'l'/'r' = Seite der Beschriftung. */
+  function widerstand(o) { const { x, yt, yb, h = 34, w = 14, bmk, wert, side = 'l' } = o, top = o.top || C.K, bot = o.bot || top, ym = (yt + yb) / 2, sx = side === 'l' ? -1 : 1, an = side === 'l' ? 'end' : 'start';
+    let s = L(x, yt, x, ym - h / 2, top) + L(x, ym + h / 2, x, yb, bot) + box(x - w / 2, ym - h / 2, w, h, { sw: 1.8 });
+    if (bmk) s += T(x + sx * (w / 2 + 7), ym + (wert ? -2 : 5), bmk, an, o.fs || 14);
+    if (wert) s += T(x + sx * (w / 2 + 7), ym + 15, wert, an, (o.fs || 14) - 2, '#333');
+    return s; }
+  /* Galvanisches Element / Batterie (TBB S. 86): langer Strich = Pluspol (oben), kurzer dicker Strich = Minuspol (unten). */
+  function batterie(o) { const { x, yt, yb, bmk = '-G1', wert } = o, top = o.top || C.K, bot = o.bot || top, ym = (yt + yb) / 2;
+    let s = L(x, yt, x, ym - 6, top) + L(x, ym + 6, x, yb, bot) + L(x - 26, ym - 6, x + 26, ym - 6, C.K, 2) + L(x - 13, ym + 6, x + 13, ym + 6, C.K, 6) + T(x + 32, ym - 8, '+', 'start', 16);
+    if (bmk) s += T(x + 32, ym + 20, bmk, 'start', o.fs || 14);
+    if (wert) s += T(x + 32, ym + 42, wert, 'start', (o.fs || 14) - 1, '#333');
+    return s; }
+  /* Ideale Spannungsquelle (TBB S. 46, Ersatzspannungsquelle, G1): Kreis mit senkrechter Linie durch den Mittelpunkt.
+     Anschlüsse oben (yt) und unten (yb), Kreis mittig bei cy. fill = Füllfarbe. Ergänzt Okt. 2026, gegen TBB-Bild S. 46 geprüft. */
+  function spannungsquelle(o) { const { x, yt, yb, cy = (yt + yb) / 2, r = 22, bmk = 'G1', fill = C.FILL } = o, top = o.top || C.K, bot = o.bot || top;
+    return L(x, yt, x, cy, top) + L(x, cy, x, yb, bot) + `<circle cx="${x}" cy="${cy}" r="${r}" fill="${fill}" stroke="${C.K}" stroke-width="2"/>` + L(x, cy - r, x, cy + r, C.K, 2) + (bmk ? T(x - r - 8, cy + 5, bmk, 'end', o.fs || 14) : ''); }
+
+  /* lösbarer Anschluss (Klemme, offener Kreis, TBB S. 86) */
+  function klemme(o) { const { x, y, label, dx = 12 } = o;
+    return `<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="${C.K}" stroke-width="2"/>` + (label ? T(x + dx, y + 5, label, 'start', o.fs || 14) : ''); }
+  /* Spannungspfeil (blau) bzw. Strompfeil (rot) mit Pfeilspitze von (x0,y0) nach (x1,y1) */
+  function pfeil(x0, y0, x1, y1, c = C.BLUE, w = 2) { const a = Math.atan2(y1 - y0, x1 - x0), l = 11, b = 0.42, p = (t) => `${x1 - l * Math.cos(a + t)},${y1 - l * Math.sin(a + t)}`;
+    return L(x0, y0, x1 - 5 * Math.cos(a), y1 - 5 * Math.sin(a), c, w) + `<polygon points="${x1},${y1} ${p(b)} ${p(-b)}" fill="${c}"/>`; }
+
+  /* ---------- Planrahmen ---------- */
+  function pfadKopf(o) { const { x0 = 10, n, colW = 210, y = 6, h = 24 } = o; let s = '';
+    for (let i = 0; i < n; i++) s += box(x0 + i * colW, y, colW, h, { fill: '#f3f4f6', stroke: '#666', sw: 1 }) + T(x0 + i * colW + colW / 2, y + 18, i + 1, 'middle', 13, C.K, 'bold');
+    return s; }
+  function kontaktspiegel(o) { const { x, y, rows, titel = 'Kontaktspiegel -Q1' } = o, w = 190, rh = 20, hh = rh * (rows.length + 1);
+    let s = T(x + 2, y - 6, titel, 'start', 10, '#333', 'bold') + box(x, y, w, hh, { sw: 1 }) + L(x, y + rh, x + w, y + rh, C.K, 1) + L(x + 80, y, x + 80, y + hh, C.K, 1) + L(x + 130, y, x + 130, y + hh, C.K, 1);
+    s += T(x + 40, y + 14, 'Kontakt', 'middle', 10) + T(x + 105, y + 14, 'S/Ö', 'middle', 10) + T(x + 160, y + 14, 'Pfad', 'middle', 10);
+    rows.forEach((r, i) => { s += T(x + 40, y + 34 + rh * i, r[0], 'middle', 10) + T(x + 105, y + 34 + rh * i, r[1], 'middle', 10) + T(x + 160, y + 34 + rh * i, r[2], 'middle', 10); });
+    return s; }
+
+  const SZ = { C, L, D, T, dot, box, PE, svg, antriebHand, antriebDruecken, antriebZiehen, antriebDrehen, antriebKippen, antriebThermisch, schaltschloss,
+    kontakt, schaltglied, sicherung, spule, meldeleuchte, widerstand, batterie, spannungsquelle, klemme, pfeil, motor3, hauptkontakte3, ausloeserKasten, mss3, fi4, ls3, motorschutzrelais3, pfadKopf, kontaktspiegel };
+  if (typeof module !== 'undefined' && module.exports) module.exports = SZ; else root.SZ = SZ;
+})(typeof window !== 'undefined' ? window : this);
+
+</script>
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const C=SZ.C;
+/* ---------- Formatierung ---------- */
+function fmt(x,n){n=n===undefined?3:n;if(!isFinite(x))return"∞";let s=(Math.round(x*Math.pow(10,n))/Math.pow(10,n)).toFixed(n);if(s.indexOf(".")>=0)s=s.replace(/0+$/,"").replace(/\.$/,"");return s.replace(".",",").replace("-","−");}
+const sub=(a,b)=>a+"<sub>"+b+"</sub>";
+function tx(h){return h.replace(/([A-Za-z])_\{([^}]+)\}/g,"$1<sub>$2</sub>");}
+/* ---------- Ersatzschaltbild (SVG, Bauteilbibliothek) ---------- */
+function lab(x,y,a,b,anchor,col,sz){return'<text x="'+x+'" y="'+y+'" text-anchor="'+anchor+'" font-size="'+(sz||18)+'" fill="'+(col||"#111")+'" font-family="Arial,sans-serif">'+a+'<tspan dy="'+(sz*0.25)+'" font-size="72%">'+b+'</tspan></text>';}
+/* o.wide: Werte an den Pfeilen (Desktop); o.fz: Schriftfaktor (Handy) */
+function ersatz(o){
+  o=o||{};const wide=!!o.wide,fz=o.fz||1,xl=wide?230:150,xt=wide?420:330,xr=wide?680:590,xa=wide?176:104,xk=wide?540:450,yT=70,yB=380,H=420,W=wide?880:790,B=C.BLUE,R=C.RED;let s="";
+  const f=n=>Math.round(n*fz);
+  s+='<rect x="62" y="14" width="'+(xt-62)+'" height="'+(H-24)+'" fill="none" stroke="#555" stroke-width="1.6" stroke-dasharray="12 4 2 4"/>';
+  s+=SZ.T(76,36,o.rahmen||"Reale Batterie","start",f(17),"#333");
+  s+=SZ.L(xl,yT,xr,yT)+SZ.L(xl,yB,xr,yB);
+  const rli='R<tspan dy="'+f(5)+'" font-size="72%">i</tspan>'+(o.ri?'<tspan dy="-'+f(5)+'"> = '+o.ri+'</tspan>':'');
+  s+=SZ.widerstand({x:xl,yt:yT,yb:170,h:38,w:16,side:"r",bmk:rli,fs:f(18)});
+  s+=SZ.spannungsquelle({x:xl,yt:170,yb:yB,cy:275,r:27,bmk:""})+SZ.T(xl+40,281,"G1","start",f(18));
+  const rll='R<tspan dy="'+f(5)+'" font-size="72%">'+(o.lastIndex||"L")+'</tspan>'+(o.rl?'<tspan dy="-'+f(5)+'"> = '+o.rl+'</tspan>':'');
+  s+=SZ.widerstand({x:xr,yt:yT,yb:yB,h:70,w:22,side:"r",bmk:rll,fs:f(18)});
+  if(o.lastText)s+=SZ.T(xr+24,262,o.lastText,"start",f(15),"#333");
+  s+=SZ.dot(xt,yT)+SZ.dot(xt,yB);
+  const v=(x,y,t,c)=>t?SZ.T(x,y,t,"end",f(17),c||B):"";
+  s+=SZ.pfeil(xa,150,xa,92,B,3)+lab(xa-10,wide?118:128,"U","i","end",B,f(20))+v(xa-10,142,o.ui);
+  s+=SZ.pfeil(xa,222,xa,340,B,3)+lab(xa-10,wide?278:288,"U","0","end",B,f(20))+v(xa-10,302,o.u0);
+  s+=SZ.pfeil(xk,yT+8,xk,yB-8,B,4);
+  if(o.kurz)s+=lab(xk-12,220,"U","KL","end",B,f(20));else s+=SZ.T(xk-12,200,"Klemmen-","end",f(16))+SZ.T(xk-12,200+f(19),"spannung","end",f(16))+lab(xk-12,200+f(46),"U","KL","end",B,f(20))+v(xk-12,200+f(46)+f(22),o.ukl);
+  s+=SZ.pfeil(xt+(wide?70:40),yT-22,xt+(wide?140:110),yT-22,R,3.5)+lab(xt+(wide?105:75),yT-32,"I",o.iIdx===undefined?"L":o.iIdx,"middle",R,f(20))+(o.i?SZ.T(xt+(wide?160:130),yT-18,o.i,"start",f(17),R):"");
+  return s;
+}
+function zeichnePlan(){
+  const el=$("#plan"),schmal=window.innerWidth<640;
+  el.setAttribute("viewBox","0 0 880 420");
+  el.innerHTML=schmal?ersatz({wide:true,fz:1.8,kurz:true,iIdx:""}):ersatz({wide:true,iIdx:""});
+}
+/* ---------- Tabs ---------- */
+function zeigeTab(id){
+  ["hilfe","a1","a2"].forEach(t=>{$("#"+t).hidden=t!==id;$("#t-"+t).setAttribute("aria-selected",t===id);});
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>zeigeTab(b.dataset.tab));
+
+/* ---------- Aufgaben ---------- */
+const AK={rahmen:"Akku",ri:"50 mΩ",rl:"0,30 Ω",lastIndex:"a",iIdx:"",lastText:"Anlasser"};
+const AUFG=[
+ {id:"a1",titel:"Aufgabe 1: Akku und Anlasser",
+  stamm:"Der <b>Innenwiderstand</b> eines Bleiakkus liegt im Milliohm-Bereich (mΩ). Er hängt vom Ladezustand, von der Temperatur und vom Alter des Akkus ab.<br>Der Akku hat die Leerlaufspannung U<sub>0</sub> = 12 V und den Innenwiderstand R<sub>i</sub> = 50 mΩ. Mit dem Akku soll der Anlasser eines Autos betrieben werden. Der Anlasser hat den Widerstand R<sub>a</sub> = 0,30 Ω.",
+  teile:[
+   {id:"a",op:"Zeichne",text:"das Ersatzschaltbild des Akkus mit Anlasser. <b>Beschrifte</b> U<sub>0</sub>, R<sub>i</sub>, U<sub>i</sub>, U<sub>KL</sub>, R<sub>a</sub> und den Strom I.",typ:"self",
+    tipps:["Eine reale Spannungsquelle besteht aus einer idealen Spannungsquelle (U<sub>0</sub>) und dem Innenwiderstand R<sub>i</sub> in Reihe.","Der Anlasser R<sub>a</sub> ist der Lastwiderstand. Er liegt in Reihe zu R<sub>i</sub>. Es fließt nur ein Strom I.","Zeichne drei Spannungspfeile: U<sub>0</sub> an der Quelle, U<sub>i</sub> an R<sub>i</sub> und U<sub>KL</sub> an den Klemmen."],
+    loesung:"<p>Reihenschaltung aus idealer Spannungsquelle (U<sub>0</sub>), Innenwiderstand R<sub>i</sub> und Anlasser R<sub>a</sub>.</p><p>Spannungspfeile (blau): U<sub>0</sub>, U<sub>i</sub>, U<sub>KL</sub>. Ein Strompfeil I (rot).</p>",svg:true},
+   {id:"b",op:"Berechne",text:"die Klemmenspannung U<sub>KL</sub>, wenn noch kein Verbraucher angeschlossen ist.",typ:"num",label:"U<sub>KL</sub> =",unit:"V",ans:12,
+    tipps:["Was fließt, wenn kein Verbraucher angeschlossen ist? Wie groß ist dann der Spannungsfall U<sub>i</sub> am Innenwiderstand?"],
+    loesung:"<p>Im Leerlauf fließt kein Strom (I = 0 A).</p><p>U<sub>i</sub> = I · R<sub>i</sub> = 0 V</p><p><b>U<sub>KL</sub> = U<sub>0</sub> = 12 V</b></p>",
+    hints:[]},
+   {id:"c",op:"Berechne",text:"die maximale Stromstärke I<sub>max</sub> des Akkus (Kurzschlussstrom).",typ:"num",label:"I<sub>max</sub> =",unit:"A",ans:240,
+    tipps:["Beim Kurzschluss ist der Lastwiderstand 0 Ω. Nur der Innenwiderstand R<sub>i</sub> begrenzt den Strom.","Ohmsches Gesetz: I = U / R. Rechne R<sub>i</sub> in Ω um: 50 mΩ = 0,05 Ω."],
+    loesung:"<p>I<sub>max</sub> = I<sub>K</sub> = U<sub>0</sub> / R<sub>i</sub></p><p>I<sub>max</sub> = 12 V / 0,05 Ω = <b>240 A</b></p>",
+    hints:[{v:0.24,t:"Prüfe die Einheit: R<sub>i</sub> = 50 mΩ = 0,05 Ω (nicht 50 Ω)."}]},
+   {id:"d",op:"Berechne",text:"die Klemmenspannung U<sub>KL</sub>, wenn der Anlasser betrieben wird.",typ:"num",label:"U<sub>KL</sub> =",unit:"V",ans:12-12/0.35*0.05,
+    tipps:["R<sub>i</sub> und R<sub>a</sub> liegen in Reihe: R<sub>ges</sub> = R<sub>i</sub> + R<sub>a</sub>.","Berechne zuerst den Strom: I = U<sub>0</sub> / R<sub>ges</sub>.","Dann: U<sub>i</sub> = I · R<sub>i</sub> und U<sub>KL</sub> = U<sub>0</sub> − U<sub>i</sub>."],
+    loesung:"<p>R<sub>ges</sub> = R<sub>i</sub> + R<sub>a</sub> = 0,05 Ω + 0,3 Ω = 0,35 Ω</p><p>I = U<sub>0</sub> / R<sub>ges</sub> = 12 V / 0,35 Ω = 34,286 A</p><p>U<sub>i</sub> = I · R<sub>i</sub> = 34,286 A · 0,05 Ω = 1,714 V</p><p><b>U<sub>KL</sub> = U<sub>0</sub> − U<sub>i</sub> = 12 V − 1,714 V = 10,286 V</b></p>",
+    hints:[{v:12,t:"Das ist U<sub>0</sub> (Leerlauf). Mit Anlasser fällt Spannung an R<sub>i</sub> ab."},{v:12/0.35*0.05,t:"Das ist der Spannungsfall U<sub>i</sub>. Gesucht ist U<sub>KL</sub> = U<sub>0</sub> − U<sub>i</sub>."},{v:12/0.35,t:"Das ist der Strom I in A. Gesucht ist eine Spannung."}]},
+   {id:"e",op:"Überprüfe",text:"rechnerisch, ob der Anlasser noch betrieben werden kann. Das Auto stand lange und es ist sehr kalt. Der Innenwiderstand ist auf R<sub>i</sub> = 150 mΩ gestiegen. Der Anlasser braucht mindestens 9 V.",typ:"num+wahl",label:"U<sub>KL</sub> =",unit:"V",ans:8,
+    wahl:{frage:"Der Anlasser …",opt:["kann betrieben werden","kann nicht betrieben werden"],ans:1},
+    tipps:["Rechne wie in d), aber mit R<sub>i</sub> = 150 mΩ = 0,15 Ω.","Vergleiche U<sub>KL</sub> mit der Mindestspannung 9 V."],
+    loesung:"<p>R<sub>ges</sub> = 0,15 Ω + 0,3 Ω = 0,45 Ω</p><p>I = 12 V / 0,45 Ω = 26,667 A</p><p>U<sub>i</sub> = 26,667 A · 0,15 Ω = 4 V</p><p><b>U<sub>KL</sub> = 12 V − 4 V = 8 V</b></p><p>8 V &lt; 9 V: Der Anlasser kann <b>nicht</b> betrieben werden.</p>",
+    hints:[{v:4,t:"Das ist der Spannungsfall U<sub>i</sub>. Gesucht ist U<sub>KL</sub> = U<sub>0</sub> − U<sub>i</sub>."},{v:12*0.3/0.35,t:"Das wäre U<sub>KL</sub> mit R<sub>i</sub> = 50 mΩ. Jetzt ist R<sub>i</sub> = 150 mΩ."}]}
+  ]},
+ {id:"a2",titel:"Aufgabe 2: Blei-Akkumulator",
+  stamm:"Ein Blei-Akkumulator hat die Leerlaufspannung U<sub>0</sub> = 14,4 V. Bei Belastung mit I = 8 A sinkt die Klemmenspannung auf U<sub>KL</sub> = 14 V.",
+  teile:[
+   {id:"a",op:"Berechne",text:"den Innenwiderstand R<sub>i</sub> des Akkumulators.",typ:"num",label:"R<sub>i</sub> =",unit:"Ω",ans:0.05,
+    tipps:["Wie viel Spannung fällt am Innenwiderstand ab? U<sub>i</sub> = U<sub>0</sub> − U<sub>KL</sub>","Durch R<sub>i</sub> fließt der Strom I = 8 A. Ohmsches Gesetz: R<sub>i</sub> = U<sub>i</sub> / I."],
+    loesung:"<p>U<sub>i</sub> = U<sub>0</sub> − U<sub>KL</sub> = 14,4 V − 14 V = 0,4 V</p><p>R<sub>i</sub> = U<sub>i</sub> / I = 0,4 V / 8 A = <b>0,05 Ω</b> (= 50 mΩ)</p>",
+    hints:[{v:0.4,t:"Das ist der Spannungsfall U<sub>i</sub>. Teile ihn durch den Strom I."},{v:14/8,t:"Das wäre U<sub>KL</sub> / I, also der Lastwiderstand. Gesucht ist R<sub>i</sub> = U<sub>i</sub> / I."}]},
+   {id:"b",op:"Berechne",text:"die maximale Stromstärke I<sub>max</sub> (Kurzschlussstrom).",typ:"num",label:"I<sub>max</sub> =",unit:"A",ans:288,
+    tipps:["Beim Kurzschluss begrenzt nur R<sub>i</sub> den Strom: I<sub>max</sub> = U<sub>0</sub> / R<sub>i</sub>. Nimm R<sub>i</sub> aus a)."],
+    loesung:"<p>I<sub>max</sub> = U<sub>0</sub> / R<sub>i</sub> = 14,4 V / 0,05 Ω = <b>288 A</b></p>",hints:[]},
+   {id:"c",op:"Berechne",text:"die Klemmenspannung U<sub>KL</sub> bei einer Stromstärke von I = 40 A.",typ:"num",label:"U<sub>KL</sub> =",unit:"V",ans:12.4,
+    tipps:["Berechne zuerst den Spannungsfall am Innenwiderstand: U<sub>i</sub> = I · R<sub>i</sub>.","Dann: U<sub>KL</sub> = U<sub>0</sub> − U<sub>i</sub>."],
+    loesung:"<p>U<sub>i</sub> = I · R<sub>i</sub> = 40 A · 0,05 Ω = 2 V</p><p><b>U<sub>KL</sub> = U<sub>0</sub> − U<sub>i</sub> = 14,4 V − 2 V = 12,4 V</b></p>",
+    hints:[{v:2,t:"Das ist der Spannungsfall U<sub>i</sub>. Gesucht ist U<sub>KL</sub> = U<sub>0</sub> − U<sub>i</sub>."}]}
+  ]}
+];
+const erledigt={};
+function ok(v,a){return Math.abs(v-a)<=Math.max(Math.abs(a)*0.005,0.0011);}
+function zahl(t){t=String(t).trim().replace(/\s+/g,"").replace(",",".").replace("−","-");if(!/^-?\d+(\.\d+)?$/.test(t))return NaN;return parseFloat(t);}
+function fortschritt(){
+  AUFG.forEach(a=>{const n=a.teile.length;let k=0;a.teile.forEach(t=>{if(erledigt[a.id+t.id])k++;});
+    const el=document.getElementById("prog-"+a.id);if(el)el.innerHTML="Geschafft: "+k+" von "+n+(k===n?' <span class="done">alles richtig</span>':"");});
+}
+function baueAufgaben(){
+  AUFG.forEach(a=>{
+    let h='<div class="card"><h2 style="font-size:1.1rem;margin:0 0 6px">'+a.titel+'</h2><p>'+a.stamm+'</p>'
+      +'<p class="prog" id="prog-'+a.id+'"></p></div><div class="card">';
+    a.teile.forEach((t,i)=>{
+      const id=a.id+t.id;
+      h+='<div class="part" id="p-'+id+'"><h3>'+t.id+') <b>'+t.op+'</b> '+t.text+'</h3>';
+      if(t.typ==="num"||t.typ==="num+wahl"){
+        h+='<div class="in"><span>'+t.label+'</span><input type="text" inputmode="decimal" autocomplete="off" id="in-'+id+'" aria-label="Ergebnis '+t.id+'"><span>'+t.unit+'</span></div>';
+        if(t.wahl)h+='<div class="in"><label for="w-'+id+'">'+t.wahl.frage+'</label><select id="w-'+id+'"><option value="">bitte wählen</option>'+t.wahl.opt.map((o,k)=>'<option value="'+k+'">'+o+'</option>').join("")+'</select></div>';
+        h+='<div class="in"><button class="btn primary" type="button" data-pruef="'+id+'">Prüfen</button>';
+      }else h+='<div class="in">';
+      h+='<button class="btn" type="button" data-tipp="'+id+'">Tipp</button><button class="btn" type="button" data-los="'+id+'">Lösung</button>';
+      h+='</div><div class="fb" id="fb-'+id+'" aria-live="polite"></div><div id="tp-'+id+'"></div><div id="ls-'+id+'" hidden></div></div>';
+    });
+    $("#"+a.id).innerHTML=h+'</div>';
+  });
+  document.querySelectorAll("[data-pruef]").forEach(b=>b.onclick=()=>pruefe(b.dataset.pruef));
+  document.querySelectorAll("[data-tipp]").forEach(b=>b.onclick=()=>tipp(b.dataset.tipp));
+  document.querySelectorAll("[data-los]").forEach(b=>b.onclick=()=>loesung(b.dataset.los));
+  document.querySelectorAll(".in input[type=text]").forEach(i=>i.onkeydown=e=>{if(e.key==="Enter")pruefe(i.id.slice(3));});
+  fortschritt();
+}
+function finde(id){const a=AUFG.find(x=>x.id===id.slice(0,2));return{a:a,t:a.teile.find(x=>x.id===id.slice(2))};}
+function pruefe(id){
+  const f=finde(id),t=f.t,fb=$("#fb-"+id),v=zahl($("#in-"+id).value);
+  if(isNaN(v)){fb.className="fb no";fb.textContent="Gib eine Zahl ein, z. B. 12,5.";return;}
+  let gut=ok(v,t.ans);
+  if(t.wahl){const w=$("#w-"+id).value;if(w===""){fb.className="fb no";fb.textContent="Wähle auch aus, ob der Anlasser betrieben werden kann.";return;}
+    if(gut&&+w!==t.wahl.ans){fb.className="fb no";fb.textContent="Die Spannung stimmt. Vergleiche sie noch einmal mit der Mindestspannung von 9 V.";return;}}
+  if(gut){fb.className="fb ok";fb.textContent="✔ Richtig!"+(t.wahl?" Auch die Entscheidung stimmt.":"");erledigt[id]=true;fortschritt();return;}
+  let msg="Noch nicht ganz. Prüfe Rechenweg und Einheit.";
+  let spez=false;
+  for(const h of(t.hints||[]))if(ok(v,h.v)){msg=h.t;spez=true;break;}
+  if(!spez&&(ok(v,t.ans*1000)||ok(v,t.ans/1000)))msg="Prüfe die Einheit: m (Milli) bedeutet 1/1000.";
+  fb.className="fb no";fb.innerHTML="✘ "+msg;
+}
+const tippZ={};
+function tipp(id){
+  const t=finde(id).t;tippZ[id]=Math.min((tippZ[id]||0)+1,t.tipps.length);
+  $("#tp-"+id).innerHTML=t.tipps.slice(0,tippZ[id]).map((x,i)=>'<div class="tipp"><b>Tipp '+(i+1)+':</b> '+x+'</div>').join("")+(tippZ[id]<t.tipps.length?'<p class="note">Noch ein Tipp möglich: Klicke noch einmal auf „Tipp“.</p>':"");
+}
+function loesung(id){
+  const t=finde(id).t,el=$("#ls-"+id);el.hidden=!el.hidden;
+  if(!el.hidden){let h='<div class="los"><b>Lösung</b>'+t.loesung+(t.svg?'<svg class="plan" viewBox="0 0 790 420" role="img" aria-label="Ersatzschaltbild Akku mit Anlasser">'+ersatz(Object.assign({iIdx:""},AK))+'</svg>':"")+'</div>';el.innerHTML=h;if(t.typ==="self"){erledigt[id]=true;fortschritt();}}
+}
+baueAufgaben();zeichnePlan();window.addEventListener('resize',zeichnePlan);
+</script>
+</body>
+</html>
